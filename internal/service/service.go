@@ -41,7 +41,7 @@ func (s *imageProcessingService) Crop(ctx context.Context,
 	}
 
 	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Crop(ctx, img,
-		int(x0), int(y0), int(x1), int(y1)), Type.String())
+		int(x0), int(y0), int(x1), int(y1)), Type.Extension())
 	if err != nil {
 		return
 	}
@@ -60,7 +60,7 @@ func (s *imageProcessingService) Resize(ctx context.Context,
 	}
 
 	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Resize(ctx, img,
-		int(width), int(height), resampleFilter), Type.String())
+		int(width), int(height), resampleFilter), Type.Extension())
 	if err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (s *imageProcessingService) Hue(ctx context.Context,
 		return
 	}
 
-	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Hue(ctx, img, int(hue)), Type.String())
+	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Hue(ctx, img, int(hue)), Type.Extension())
 	if err != nil {
 		return
 	}
@@ -168,7 +168,7 @@ func (s *imageProcessingService) Desaturate(ctx context.Context,
 		return
 	}
 
-	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Desaturate(ctx, img), Type.String())
+	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Desaturate(ctx, img), Type.Extension())
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (s *imageProcessingService) Blur(ctx context.Context,
 		return
 	}
 
-	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Blur(ctx, img, radius, method), Type.String())
+	encoded, err := imageprocessing.EncodeImage(s.imagesProcessing.Blur(ctx, img, radius, method), Type.Extension())
 	if err != nil {
 		return
 	}
