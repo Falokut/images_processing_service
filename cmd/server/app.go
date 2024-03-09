@@ -26,11 +26,11 @@ func main() {
 	logger := logging.GetLogger()
 
 	cfg := config.GetConfig()
-	log_level, err := logrus.ParseLevel(cfg.LogLevel)
+	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		logger.Fatal(err)
 	}
-	logger.Logger.SetLevel(log_level)
+	logger.Logger.SetLevel(logLevel)
 	var metric metrics.Metrics
 	shutdown := make(chan error, 1)
 	if cfg.EnableMetrics {
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	logger.Info("Service initializing")
-	s := service.NewImagesProcessingService(logger.Logger, defaultprocessing.ImageProcessing{})
+	s := service.NewImagesProcessingService(defaultprocessing.ImageProcessing{})
 	h := handler.NewImageProcessingServiceHandler(s)
 
 	logger.Info("Server initializing")

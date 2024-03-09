@@ -23,8 +23,7 @@ func NewImageProcessingServiceHandler(s service.ImageProcessingService) *ImagePr
 
 func (h *ImageProcessingServiceHandler) Crop(ctx context.Context,
 	in *image_service.CropRequest) (res *httpbody.HttpBody, err error) {
-
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
@@ -43,7 +42,7 @@ func (h *ImageProcessingServiceHandler) Crop(ctx context.Context,
 
 func (h *ImageProcessingServiceHandler) Resize(ctx context.Context,
 	in *image_service.ResizeRequest) (res *httpbody.HttpBody, err error) {
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
@@ -62,7 +61,7 @@ func (h *ImageProcessingServiceHandler) Resize(ctx context.Context,
 
 func (h *ImageProcessingServiceHandler) Validate(ctx context.Context,
 	in *image_service.ValidateRequest) (res *image_service.ValidateResponse, err error) {
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
@@ -87,7 +86,7 @@ func (h *ImageProcessingServiceHandler) Validate(ctx context.Context,
 
 func (h *ImageProcessingServiceHandler) Blur(ctx context.Context,
 	in *image_service.BlurRequest) (res *httpbody.HttpBody, err error) {
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
@@ -105,7 +104,7 @@ func (h *ImageProcessingServiceHandler) Blur(ctx context.Context,
 
 func (h *ImageProcessingServiceHandler) Hue(ctx context.Context,
 	in *image_service.HueRequest) (res *httpbody.HttpBody, err error) {
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
@@ -123,7 +122,7 @@ func (h *ImageProcessingServiceHandler) Hue(ctx context.Context,
 
 func (h *ImageProcessingServiceHandler) Desaturate(ctx context.Context,
 	in *image_service.Image) (res *httpbody.HttpBody, err error) {
-	if in.Image == nil {
+	if in.Image == nil || len(in.Image) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image mustn't be empty")
 	}
 	defer h.handleError(&err)
