@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/Falokut/image_processing_service/pkg/jaeger"
+	"github.com/Falokut/image_processing_service/pkg/logging"
 	"github.com/Falokut/image_processing_service/pkg/metrics"
-	logging "github.com/Falokut/online_cinema_ticket_office.loggerwrapper"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 

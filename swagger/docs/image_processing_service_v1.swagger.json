@@ -221,7 +221,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/image_processing_serviceValidateResponce"
+              "$ref": "#/definitions/image_processing_serviceValidateResponse"
             }
           },
           "500": {
@@ -414,7 +414,7 @@
         }
       }
     },
-    "image_processing_serviceValidateResponce": {
+    "image_processing_serviceValidateResponse": {
       "type": "object",
       "properties": {
         "image_valid": {

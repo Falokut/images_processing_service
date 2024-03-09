@@ -1,4 +1,4 @@
-package image_processing
+package imageprocessing
 
 import (
 	"context"
@@ -10,6 +10,8 @@ var (
 	ErrUnsupported = errors.New("unsupported")
 	ErrInternal    = errors.New("internal")
 )
+
+const HueMaxValue = 360
 
 type ImagesProcessing interface {
 	Resize(ctx context.Context, img image.Image, width, height int, resampleMethod string) image.Image

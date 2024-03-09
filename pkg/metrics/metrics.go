@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -14,16 +15,23 @@ import (
 type Metrics interface {
 	IncHits(status int, method, path string)
 	ObserveResponseTime(status int, method, path string, observeTime float64)
+	IncRestPanicsTotal()
+	IncGrpcPanicsTotal()
 }
 
-type EmptyMetrics struct {}
-func (m *EmptyMetrics) IncHits(status int, method, path string) {}
-func (m *EmptyMetrics) ObserveResponseTime(status int, method, path string, observeTime float64) {}
+type EmptyMetrics struct{}
+
+func (m *EmptyMetrics) IncHits(_ int, _, _ string)                        {}
+func (m *EmptyMetrics) ObserveResponseTime(_ int, _, _ string, _ float64) {}
+func (m *EmptyMetrics) IncRestPanicsTotal()                               {}
+func (m *EmptyMetrics) IncGrpcPanicsTotal()                               {}
 
 type PrometheusMetrics struct {
-	HitsTotal prometheus.Counter
-	Hits      *prometheus.CounterVec
-	Times     *prometheus.HistogramVec
+	HitsTotal             prometheus.Counter
+	Hits                  *prometheus.CounterVec
+	Times                 *prometheus.HistogramVec
+	RestPanicRecoverTotal prometheus.Counter
+	GrpcPanicRecoverTotal prometheus.Counter
 }
 
 func CreateMetrics(name string) (Metrics, error) {
@@ -42,6 +50,20 @@ func CreateMetrics(name string) (Metrics, error) {
 		[]string{"status", "method", "path"},
 	)
 	if err := prometheus.Register(metr.Hits); err != nil {
+		return nil, err
+	}
+
+	metr.RestPanicRecoverTotal = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: name + "_rest_panic_recover_total",
+	})
+	if err := prometheus.Register(metr.RestPanicRecoverTotal); err != nil {
+		return nil, err
+	}
+
+	metr.GrpcPanicRecoverTotal = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: name + "_grpc_panic_recover_total",
+	})
+	if err := prometheus.Register(metr.GrpcPanicRecoverTotal); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +98,8 @@ func RunMetricServer(cfg MetricsServerConfig) error {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
-	return http.Serve(lis, mux)
+	srv := &http.Server{Handler: http.Handler(mux), ReadHeaderTimeout: time.Second * 10}
+	return srv.Serve(lis)
 }
 
 func (metr *PrometheusMetrics) IncHits(status int, method, path string) {
@@ -86,4 +109,12 @@ func (metr *PrometheusMetrics) IncHits(status int, method, path string) {
 
 func (metr *PrometheusMetrics) ObserveResponseTime(status int, method, path string, observeTime float64) {
 	metr.Times.WithLabelValues(strconv.Itoa(status), method, path).Observe(observeTime)
+}
+
+func (metr *PrometheusMetrics) IncRestPanicsTotal() {
+	metr.RestPanicRecoverTotal.Inc()
+}
+
+func (metr *PrometheusMetrics) IncGrpcPanicsTotal() {
+	metr.GrpcPanicRecoverTotal.Inc()
 }

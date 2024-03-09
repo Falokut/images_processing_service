@@ -58,7 +58,7 @@ service ImageProcessingServiceV1 {
       };
     };
     
-    rpc Validate(ValidateRequest) returns(ValidateResponce) {
+    rpc Validate(ValidateRequest) returns(ValidateResponse) {
       option (google.api.http) = {
         post: "/v1/validate"
         body: "*"

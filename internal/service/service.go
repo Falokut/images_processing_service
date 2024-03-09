@@ -6,7 +6,7 @@ import (
 	"image"
 	"strings"
 
-	"github.com/Falokut/image_processing_service/internal/image_processing"
+	"github.com/Falokut/image_processing_service/internal/imageprocessing"
 	image_service "github.com/Falokut/image_processing_service/pkg/image_processing_service/v1/protos"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opentracing/opentracing-go"
@@ -20,16 +20,13 @@ import (
 type ImageProcessingService struct {
 	image_service.UnimplementedImageProcessingServiceV1Server
 	logger           *logrus.Logger
-	errorHandler     errorHandler
-	imagesProcessing image_processing.ImagesProcessing
+	imagesProcessing imageprocessing.ImagesProcessing
 }
 
 func NewImagesProcessingService(logger *logrus.Logger,
-	imagesProcessing image_processing.ImagesProcessing) *ImageProcessingService {
-	errorHandler := newErrorHandler(logger)
+	imagesProcessing imageprocessing.ImagesProcessing) *ImageProcessingService {
 	return &ImageProcessingService{
 		logger:           logger,
-		errorHandler:     errorHandler,
 		imagesProcessing: imagesProcessing,
 	}
 }
@@ -252,7 +249,8 @@ func (s *ImageProcessingService) decodeImage(ctx context.Context, img []byte) (i
 	decoded, Type, err := image_processing.DecodeImage(img)
 	if err != nil {
 		s.logger.Error(err)
-		return nil, nil, s.errorHandler.createErrorResponceWithSpan(span, ErrInvalidArgument, "can't decode image, data may be malformed")
+		return nil, nil, s.errorHandler.createErrorResponceWithSpan(span, ErrInvalidArgument,
+			"can't decode image, data may be malformed")
 	}
 
 	span.SetTag("grpc.status", codes.OK)

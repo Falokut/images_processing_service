@@ -9,33 +9,35 @@ import (
 
 	server "github.com/Falokut/grpc_rest_server"
 	"github.com/Falokut/image_processing_service/internal/config"
-	"github.com/Falokut/image_processing_service/internal/default_processing"
+	"github.com/Falokut/image_processing_service/internal/handler"
+	"github.com/Falokut/image_processing_service/internal/imageprocessing/defaultprocessing"
 	"github.com/Falokut/image_processing_service/internal/service"
 	image_service "github.com/Falokut/image_processing_service/pkg/image_processing_service/v1/protos"
 	jaegerTracer "github.com/Falokut/image_processing_service/pkg/jaeger"
+	"github.com/Falokut/image_processing_service/pkg/logging"
 	"github.com/Falokut/image_processing_service/pkg/metrics"
-	logging "github.com/Falokut/online_cinema_ticket_office.loggerwrapper"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-
 	logging.NewEntry(logging.FileAndConsoleOutput)
 	logger := logging.GetLogger()
 
-	appCfg := config.GetConfig()
-	log_level, err := logrus.ParseLevel(appCfg.LogLevel)
+	cfg := config.GetConfig()
+	log_level, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	logger.Logger.SetLevel(log_level)
 	var metric metrics.Metrics
-	if appCfg.EnableMetrics {
-		tracer, closer, err := jaegerTracer.InitJaeger(appCfg.JaegerConfig)
+	shutdown := make(chan error, 1)
+	if cfg.EnableMetrics {
+		tracer, closer, err := jaegerTracer.InitJaeger(cfg.JaegerConfig)
 		if err != nil {
-			logger.Fatal("cannot create tracer", err)
+			logger.Errorf("cannot create tracer %v", err)
+			return
 		}
 		logger.Info("Jaeger connected")
 		defer closer.Close()
@@ -43,34 +45,49 @@ func main() {
 		opentracing.SetGlobalTracer(tracer)
 
 		logger.Info("Metrics initializing")
-		metric, err = metrics.CreateMetrics(appCfg.PrometheusConfig.Name)
+		metric, err = metrics.CreateMetrics(cfg.PrometheusConfig.Name)
 		if err != nil {
-			logger.Fatal(err)
+			logger.Errorf("error while creating metrics %v", err)
+			return
 		}
 
 		go func() {
 			logger.Info("Metrics server running")
-			if err := metrics.RunMetricServer(appCfg.PrometheusConfig.ServerConfig); err != nil {
-				logger.Fatal(err)
+			if err = metrics.RunMetricServer(cfg.PrometheusConfig.ServerConfig); err != nil {
+				logger.Errorf("Shutting down, error while running metrics server %v", err)
+				shutdown <- err
+				return
 			}
 		}()
 	} else {
 		metric = &metrics.EmptyMetrics{}
 	}
 
-	imagesProcessing := default_processing.NewImageProcessingService(logger.Logger)
 	logger.Info("Service initializing")
-	service := service.NewImagesProcessingService(logger.Logger, imagesProcessing)
+	s := service.NewImagesProcessingService(logger.Logger, defaultprocessing.ImageProcessing{})
+	h := handler.NewImageProcessingServiceHandler(s)
 
 	logger.Info("Server initializing")
-	s := server.NewServer(logger.Logger, service)
-	s.Run(getListenServerConfig(appCfg), metric, nil, nil)
+	serv := server.NewServer(logger.Logger, h)
+	go func() {
+		if err := serv.Run(getListenServerConfig(cfg), metric, nil, nil); err != nil {
+			logger.Errorf("Shutting down, error while running server %s", err.Error())
+			shutdown <- err
+			return
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGHUP, syscall.SIGTERM)
 
-	<-quit
-	s.Shutdown()
+	select {
+	case <-quit:
+		break
+	case <-shutdown:
+		break
+	}
+
+	serv.Shutdown()
 }
 
 const (

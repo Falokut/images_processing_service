@@ -1,11 +1,18 @@
-package image_processing
+package imageprocessing
 
 import (
 	"bytes"
 	"encoding/base64"
 	"image"
+	_ "image/gif"
+	"image/jpeg"
 	"image/png"
 
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
+
+	"github.com/Falokut/image_processing_service/internal/models"
 	"github.com/disintegration/imaging"
 	"github.com/gabriel-vasile/mimetype"
 )
@@ -16,12 +23,12 @@ func EncodeImage(img image.Image, extension string) ([]byte, error) {
 
 	format, err := imaging.FormatFromExtension(extension)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, models.Error(models.Internal, err.Error())
 	}
-	err = imaging.Encode(buf, img, format, imaging.PNGCompressionLevel(png.BestSpeed), imaging.JPEGQuality(70))
+	err = imaging.Encode(buf, img, format, imaging.PNGCompressionLevel(png.BestSpeed), imaging.JPEGQuality(jpeg.DefaultQuality))
 
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, models.Error(models.Internal, err.Error())
 	}
 
 	return buf.Bytes(), nil
@@ -32,9 +39,11 @@ func DecodeImage(img []byte) (decoded image.Image, mimeType *mimetype.MIME, err 
 	buf := bytes.NewBuffer(img)
 	decoded, err = imaging.Decode(buf)
 	if err != nil {
-		return nil, mimeType, err
+		err = models.Error(models.Internal, err.Error())
+		return
 	}
-	return decoded, mimeType, nil
+
+	return
 }
 
 func ConvertToBase64(img []byte) []byte {

@@ -1,6 +1,15 @@
+# Image Processing Service #
+[![Go Report Card](https://goreportcard.com/badge/github.com/Falokut/image_processing_service)](https://goreportcard.com/report/github.com/Falokut/image_processing_service)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/Falokut/image_processing_service)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Falokut/image_processing_service)
+[![Go](https://github.com/Falokut/image_processing_service/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/Falokut/image_processing_service/actions/workflows/go.yml) ![](https://changkun.de/urlstat?mode=github&repo=Falokut/image_processing_service)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+---
+The Image Processing Service is a simple image processing service with gRPC and RestAPI endpoints.
+
 # Content
 + [Image Processing Service](#image-processing-service)
-    + [Running instructions](#how-to-run)
++ [Running instructions](#how-to-run)
 + [Params info](#configuration-params-info)
     + [Jaeger config](#jaeger-config)
     + [Prometheus config](#prometheus-config)
@@ -9,14 +18,15 @@
 + [Author](#author)
 + [License](#license)
 
-# Image Processing Service
-The Image Processing Service is a simple image processing service with gRPC and RestAPI endpoints.
 
-## How to Run
+
+# How to Run
 + clone git repo
 ```shell
     git clone https://github.com/Falokut/image_processing_service.git
 ```
++ create config file config.yml in dir ./config
++ provide config by docker compose volume
 + run by command
 ```shell
     docker compose up --build
